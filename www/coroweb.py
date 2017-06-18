@@ -56,21 +56,7 @@ class RequestHandler(object):
             qs = request.query_string
             request_data = {key:value[0] for key,value in parse.parse_qs(qs, True).items()}
             logging.info('request form:%s' % request_data)
-        elif request.method == 'POST':
-            if not request.content_type:
-                return web.HTTPBadRequest(text='Missing Content-Type.')
-            content_type = request.content_type.lower()
-            if content_type.startswith('application/json'):
-                request_data = await request.json()
-                if not isinstance(request_data, dict):
-                    return web.HTTPBadRequest(text='JSON body must be object.')
-                logging.info('request json: %s' % request_data)
-            elif content_type.startswith(('application/x-www-form-urlencoded', 'multipart/form-data')):
-                params = await request.post()
-                request_data = dict(**params)
-                logging.info('request form: %s' % request_data)
-            else:
-                return web.HTTPBadRequest(text='Unsupported Content-Type: %s' % content_type)
+        # 因为微信POST过来数据不规则，所以不在此对数据进行参数提取
         else:
             request_data = {}
 
