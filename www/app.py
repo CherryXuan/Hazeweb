@@ -4,9 +4,10 @@
 import logging
 logging.basicConfig(level=logging.INFO)
 
-import asyncio, os, json, time
+import asyncio
 
 from aiohttp import web
+from aiohttp import ClientSession
 
 from coroweb import add_routes
 

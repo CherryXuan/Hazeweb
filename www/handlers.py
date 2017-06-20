@@ -12,10 +12,6 @@ from models import Messages
 import receive
 import reply
 
-import xml.etree.ElementTree as ET
-
-import re
-
 @get('/')
 async def index():
     response = '<h1>WEIXIN</h1>'
@@ -55,8 +51,41 @@ async def postwx(request):
     recMsg = receive.parse_xml(data)
     toUser = recMsg.FromUserName
     fromUser = recMsg.ToUserName
+    print(recMsg.Content.decode('ascii'))
     if recMsg.MsgType == 'text':
-        content = "test"
+        flag = True
+        if recMsg.Content.decode('ascii') == '1':
+            addr = 'addr="xaut"'
+            addrp = '西安理工大学金花校区'
+        elif recMsg.Content.decode('ascii') == '2':
+            addr = 'addr="xautnew"'
+            addrp = '西安理工大学曲江校区'
+        else:
+            flag = False
+            content = '''雾霾实时检测：
+请输入对应地址标号
+1 西安理工大学金花校区
+2 西安理工大学曲江校区
+...'''
+        if flag :
+            hz = await Messages.findAll(where=addr, orderBy='id desc', limit=(0, 1))
+            hzdict = dict(hz)
+            if int(hzdict['pm25']) <= 50:
+                quality = '优'
+            elif int(hzdict['pm25']) <= 100:
+                quality = '良'
+            elif int(hzdict['pm25']) <= 150:
+                quality = '轻度污染'
+            elif int(hzdict['pm25']) <= 200:
+                quality = '中度污染'
+            elif int(hzdict['pm25']) <= 300:
+                quality = '重度污染'
+            content = '''空气质量 %s
+PM2.5指数 %s
+PM10 指数 %s
+监测地点  %s
+实时时间  %s''' % (quality, hzdict['pm25'], hzdict['pm10'], addrp, hzdict['data'])
+
         replyMsg = reply.TextMsg(toUser, fromUser, content)
         result = replyMsg.send()
     elif recMsg.MsgType == 'image':

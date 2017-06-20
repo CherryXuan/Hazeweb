@@ -234,7 +234,7 @@ class Model(dict, metaclass=ModelMetaclass):
     # findAll() - 根据WHERE条件查找
     @classmethod
     async def findAll(cls, where=None, args=None, **kw):
-        # sql语句不太会。。这里好像是添加了几个参数 where、args、OrderBy、limit
+        # 添加了几个参数 where、args、OrderBy、limit
         sql = [cls.__select__]
         # 如果有where参数就在sql语句中添加字符串where和参数where
         if where:
@@ -259,7 +259,8 @@ class Model(dict, metaclass=ModelMetaclass):
             else:
                 raise ValueError("错误的limit值：%s" % limit)
         rs = await select(" ".join(sql), args)
-        return [cls(**r) for r in rs]
+
+        return [cls(**r) for r in rs][0]
 
     # findNumber() - 根据WHERE条件查找，但返回的是整数，适用于select count(*)类型的SQL。
     @classmethod
@@ -272,7 +273,6 @@ class Model(dict, metaclass=ModelMetaclass):
         if len(rs) == 0:
             return None
         return rs[0]['_num_']
-
     # ===============往Model类添加实例方法，就可以让所有子类调用实例方法===================
 
     # save、update、remove这三个方法需要管理员权限才能操作，所以不定义为类方法，需要创建实例之后才能调用
