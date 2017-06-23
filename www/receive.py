@@ -10,6 +10,8 @@ def parse_xml(web_data):
         return None
     xmlData = ET.fromstring(web_data)
     msg_type = xmlData.find('MsgType').text
+    if msg_type == 'event':
+        return EventMsg(xmlData)
     if msg_type == 'text':
         return TextMsg(xmlData)
     elif msg_type == 'image':
@@ -22,6 +24,15 @@ class Msg(object):
         self.CreateTime = xmlData.find('CreateTime').text
         self.MsgType = xmlData.find('MsgType').text
         self.MsgId = xmlData.find('MsgId').text
+
+# 事件参数提取
+class EventMsg(object):
+    def __init__(self, xmlData):
+        self.ToUserName = xmlData.find('ToUserName').text
+        self.FromUserName = xmlData.find('FromUserName').text
+        self.MsgType = xmlData.find('MsgType').text
+        self.Event = xmlData.find('Event').text
+
 # 文本消息参数
 class TextMsg(Msg):
     def __init__(self, xmlData):

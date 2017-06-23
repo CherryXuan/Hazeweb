@@ -12,6 +12,8 @@ from models import Messages
 import receive
 import reply
 
+import time
+
 @get('/')
 async def index():
     response = '<h1>WEIXIN</h1>'
@@ -19,7 +21,8 @@ async def index():
 
 # 数据输入
 @get('/messages')
-async def messages(addr, data, pm25, pm10):
+async def messages(addr, pm25, pm10):
+    data = time.strftime('%Y-%m-%d %H:%M')
     messages = Messages(addr = addr, data = data, pm25 = pm25, pm10 = pm10)
     await messages.save()
     response = '<h1>OK!!!</h1>'
@@ -51,8 +54,18 @@ async def postwx(request):
     recMsg = receive.parse_xml(data)
     toUser = recMsg.FromUserName
     fromUser = recMsg.ToUserName
-    print(recMsg.Content.decode('ascii'))
-    if recMsg.MsgType == 'text':
+    # print(recMsg.Content.decode('ascii'))
+    if recMsg.MsgType == 'event':
+        if recMsg.Event == 'subscribe':
+            content = '''欢迎关注西安理工大学雾霾监测公众号
+雾霾实时监测数据查询：
+请输入对应地址标号
+1 西安理工大学金花校区
+2 西安理工大学曲江校区
+...'''
+            replyMsg = reply.TextMsg(toUser, fromUser, content)
+            result = replyMsg.send()
+    elif recMsg.MsgType == 'text':
         flag = True
         if recMsg.Content.decode('ascii') == '1':
             addr = 'addr="xaut"'
@@ -62,7 +75,7 @@ async def postwx(request):
             addrp = '西安理工大学曲江校区'
         else:
             flag = False
-            content = '''雾霾实时检测：
+            content = '''雾霾实时监测：
 请输入对应地址标号
 1 西安理工大学金花校区
 2 西安理工大学曲江校区
